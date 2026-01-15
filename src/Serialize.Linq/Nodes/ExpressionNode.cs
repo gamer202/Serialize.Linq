@@ -36,6 +36,8 @@ namespace Serialize.Linq.Nodes
             Type = new TypeNode(factory, type);
         }
 
+        public ExpressionType NodeType { get; set; }
+
         #region DataMember
 #if !SERIALIZE_LINQ_OPTIMIZE_SIZE
         /// <summary>
@@ -44,12 +46,12 @@ namespace Serialize.Linq.Nodes
         /// <value>
         /// The type of the node.
         /// </value>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, Name = "NodeType")]
 #else
         [DataMember(EmitDefaultValue = false, Name = "NT")]
 #endif
         #endregion
-        public ExpressionType NodeType { get; set; }
+        public string NodeTypeString { get => NodeType.ToString(); set => Enum.Parse(typeof(ExpressionType), value); }
 
         #region DataMember
 #if !SERIALIZE_LINQ_OPTIMIZE_SIZE
