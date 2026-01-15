@@ -106,6 +106,7 @@ jobs:
             --name "AzureArtifacts" \
             --username "TNWLI" \
             --password "$PAT" \
+            --api-key "SerializeLinqAzureDevOps" \   # <-- REQUIRED header value (arbitrary non-empty)
             --store-password-in-clear-text
 
       - name: Push package to Azure Artifacts
