@@ -60,10 +60,10 @@ jobs:
         run: |
           if [ -n "${{ steps.ver.outputs.pack_version }}" ]; then
             echo "Packing with version ${{ steps.ver.outputs.pack_version }}"
-            dotnet pack --configuration Release --no-build -p:PackageVersion=${{ steps.ver.outputs.pack_version }} -o ./artifacts
+            dotnet pack src/Serialize.Linq/Serialize.Linq.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.ver.outputs.pack_version }} -o ./artifacts
           else
             echo "Packing with csproj-defined version"
-            dotnet pack --configuration Release --no-build -o ./artifacts
+            dotnet pack src/Serialize.Linq/Serialize.Linq.csproj --configuration Release --no-build -o ./artifacts
           fi
 
       - name: Publish build artifacts
