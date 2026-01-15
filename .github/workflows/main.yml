@@ -72,9 +72,13 @@ jobs:
           name: nuget-packages
           path: artifacts/*.nupkg
 
+      - name: Show github.ref
+        run: echo "github.ref = $GITHUB_REF"
+
   publish_nuget:
     name: Publish to Azure
     needs: build_test_pack
+
     if: startsWith(github.ref, 'refs/tags/v')   # only on version tags
     runs-on: ubuntu-latest
     environment:
@@ -91,7 +95,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Publish to nuget.org
+      - name: Publish to azure.com NuGet feed
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
