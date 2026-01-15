@@ -1,0 +1,104 @@
+
+name: Build & Publish NuGet
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - "v*.*.*"        # publish when pushing a SemVer tag like v1.2.3
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build_test_pack:
+    name: Build, Test, Pack
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore src\Serialize.Linq.sln
+
+      - name: Build (Release)
+        run: dotnet build src\Serialize.Linq.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test tests\Serialize.Linq.Tests\Serialize.Linq.Tests.csproj --configuration Release --no-build --verbosity normal
+
+      # Determine package version from tag (v1.2.3 -> 1.2.3); falls back to csproj version if not a tag build
+      - name: Compute Package Version
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+.*)$ ]]; then
+            echo "pack_version=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          else
+            echo "pack_version=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pack (Release)
+        run: |
+          if [ -n "${{ steps.ver.outputs.pack_version }}" ]; then
+            echo "Packing with version ${{ steps.ver.outputs.pack_version }}"
+            dotnet pack --configuration Release --no-build -p:PackageVersion=${{ steps.ver.outputs.pack_version }} -o ./artifacts
+          else
+            echo "Packing with csproj-defined version"
+            dotnet pack --configuration Release --no-build -o ./artifacts
+          fi
+
+      - name: Publish build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+
+  publish_nuget:
+    name: Publish to Azure
+    needs: build_test_pack
+    if: startsWith(github.ref, 'refs/tags/v')   # only on version tags
+    runs-on: ubuntu-latest
+    environment:
+      name: nuget
+    steps:
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts
+
+      - name: Setup .NET (push requires cli)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish to nuget.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          for nupkg in ./artifacts/*.nupkg; do
+            echo "Pushing $nupkg"
+            dotnet nuget push "$nupkg" \
+              --api-key "$NUGET_API_KEY" \
+              --source "https://pkgs.dev.azure.com/Denso-NAIOT/NEXUS/_packaging/DMMI-NAIOT/nuget/v3/index.json" \
+              --skip-duplicate
+          done
