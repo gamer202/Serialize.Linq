@@ -51,7 +51,11 @@ namespace Serialize.Linq.Nodes
         [DataMember(EmitDefaultValue = false, Name = "NT")]
 #endif
         #endregion
-        public string NodeTypeString { get => NodeType.ToString(); set => Enum.Parse(typeof(ExpressionType), value); }
+        public string NodeTypeString 
+        { 
+            get => NodeType.ToString(); 
+            set => NodeType = (ExpressionType)Enum.Parse(typeof(ExpressionType), value); 
+        }
 
         #region DataMember
 #if !SERIALIZE_LINQ_OPTIMIZE_SIZE
