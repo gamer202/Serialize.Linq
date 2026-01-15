@@ -103,6 +103,6 @@ jobs:
             echo "Pushing $nupkg"
             dotnet nuget push "$nupkg" \
               --api-key "$NUGET_API_KEY" \
-              --source "https://pkgs.dev.azure.com/Denso-NAIOT/NEXUS/_packaging/DMMI-NAIOT/nuget/v3/index.json" \
+              --source "https://pkgs.dev.azure.com/Denso-NAIOT/NEXUS/_packaging/DMTN-NAIOT/nuget/v3/index.json" \
               --skip-duplicate
           done
