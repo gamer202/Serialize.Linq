@@ -37,13 +37,13 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore src\Serialize.Linq.sln
 
       - name: Build (Release)
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build src\Serialize.Linq.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal
+        run: dotnet test tests\Serialize.Linq.Tests\Serialize.Linq.Tests.csproj --configuration Release --no-build --verbosity normal
 
       # Determine package version from tag (v1.2.3 -> 1.2.3); falls back to csproj version if not a tag build
       - name: Compute Package Version
@@ -73,7 +73,7 @@ jobs:
           path: artifacts/*.nupkg
 
   publish_nuget:
-    name: Publish to nuget.org
+    name: Publish to Azure
     needs: build_test_pack
     if: startsWith(github.ref, 'refs/tags/v')   # only on version tags
     runs-on: ubuntu-latest
