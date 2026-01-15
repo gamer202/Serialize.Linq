@@ -43,7 +43,7 @@ jobs:
         run: dotnet build src/Serialize.Linq.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test tests/Serialize.Linq.Tests/Serialize.Linq.Tests.csproj --configuration Release --no-build --verbosity normal
+        run: dotnet test src/Serialize.Linq.Tests/Serialize.Linq.Tests.csproj --configuration Release --no-build --verbosity normal
 
       # Determine package version from tag (v1.2.3 -> 1.2.3); falls back to csproj version if not a tag build
       - name: Compute Package Version
