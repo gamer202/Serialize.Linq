@@ -95,14 +95,25 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Publish to azure.com NuGet feed
+ 
+      - name: Add Azure Artifacts NuGet source
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          PAT: ${{ secrets.NUGET_API_KEY }}
         run: |
-          for nupkg in ./artifacts/*.nupkg; do
-            echo "Pushing $nupkg"
-            dotnet nuget push "$nupkg" \
-              --api-key "$NUGET_API_KEY" \
-              --source "https://pkgs.dev.azure.com/Denso-NAIOT/NEXUS/_packaging/DMTN-NAIOT/nuget/v3/index.json" \
+          FEED_URL="https://pkgs.dev.azure.com/Denso-NAIOT/NEXUS/_packaging/DMTN-NAIOT/nuget/v3/index.json"
+          dotnet nuget remove source "AzureArtifacts" || true
+          dotnet nuget add source "$FEED_URL" \
+            --name "AzureArtifacts" \
+            --username "TNWLI" \
+            --password "$PAT" \
+            --store-password-in-clear-text
+
+      - name: Push package to Azure Artifacts
+        run: |
+          for pkg in artifacts/*.nupkg; do
+            echo "Pushing $pkg ..."
+            dotnet nuget push "$pkg" \
+              --source "AzureArtifacts" \
               --skip-duplicate
           done
+
