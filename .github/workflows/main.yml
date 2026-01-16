@@ -109,6 +109,8 @@ jobs:
             --store-password-in-clear-text
 
       - name: Push package to Azure Artifacts
+        env:
+          PAT: ${{ secrets.NUGET_API_KEY }}
         run: |
           for pkg in artifacts/*.nupkg; do
             echo "Pushing $pkg ..."
